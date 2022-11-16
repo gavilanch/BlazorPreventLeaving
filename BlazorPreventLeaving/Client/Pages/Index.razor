@@ -1,0 +1,53 @@
+﻿@page "/"
+@inject IJSRuntime js
+@inject SweetAlertService Swal
+
+<PageTitle>Index</PageTitle>
+
+<h1>Insert name form</h1>
+
+<NavigationLock OnBeforeInternalNavigation="OnBeforeInternalNavigation" />
+
+<input type="text" @bind="_name" />
+<button @onclick=InsertName>Insert</button>
+
+<ul>
+    @foreach (var name in Names)
+    {
+        <li>@name</li>
+    }
+</ul>
+
+@code {
+    public string _name = "";
+    public List<string> Names { get; set; } = new List<string>();
+
+    public void InsertName()
+    {
+        Names.Add(_name);
+        _name = "";
+    }
+
+    private async Task OnBeforeInternalNavigation(LocationChangingContext context)
+    {
+        if (_name != "")
+        {
+            var result = await Swal.FireAsync(new SweetAlertOptions
+                {
+                    Title = "Confirmation",
+                    Text = "Do you wish to leave and lose the pending changes?",
+                    Icon = SweetAlertIcon.Warning,
+                    ShowCancelButton = true,
+                    ConfirmButtonText = "Yes, I wish to leave",
+                    CancelButtonText = "No, wait"
+                });
+
+            var confirm = !string.IsNullOrEmpty(result.Value);
+
+            if (!confirm)
+            {
+                context.PreventNavigation();
+            }
+        }
+    }
+}
